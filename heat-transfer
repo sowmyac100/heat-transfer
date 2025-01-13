@@ -1,0 +1,73 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Grid parameters
+grid_size = (20, 20)  # 20x20 grid
+dx = 0.1  # Distance between nodes (meters)
+dy = 0.1
+dt = 0.01  # Time step (seconds)
+thermal_diffusivity = 0.0001  # Thermal diffusivity (m^2/s)
+
+# Heater configuration 
+heaters = [(5, 5), (15, 15)]  # Heater positions
+heater_power = 50  # Heat added by each heater (units of heat per second)
+
+# Initialize temperature grid
+temperature = np.zeros(grid_size)  # Initial temperature
+heater_state = {pos: False for pos in heaters}  # Heater states (on/off)
+
+# Boundary conditions
+ambient_temperature = 20  # Ambient temperature (Celsius)
+temperature[:, 0] = ambient_temperature  # Left boundary
+temperature[:, -1] = ambient_temperature  # Right boundary
+temperature[0, :] = ambient_temperature  # Top boundary
+temperature[-1, :] = ambient_temperature  # Bottom boundary
+
+def update_heater_logic(time):
+    """Toggle heaters on/off based on custom logic."""
+    for pos in heater_state:
+        x, y = pos
+        # Example logic: Turn on heater if temperature at its location < 40
+        if temperature[x, y] < 40:
+            heater_state[pos] = True
+        else:
+            heater_state[pos] = False
+
+def apply_heater_effect():
+    """Apply heat source effect from heaters."""
+    heat_source = np.zeros_like(temperature)
+    for (x, y), is_on in heater_state.items():
+        if is_on:
+            heat_source[x, y] = heater_power
+    return heat_source
+
+def step_heat_equation(temp, heat_source):
+    """Perform one time step of the heat equation."""
+    new_temp = temp.copy()
+    for i in range(1, temp.shape[0] - 1):
+        for j in range(1, temp.shape[1] - 1):
+            d2T_dx2 = (temp[i+1, j] - 2*temp[i, j] + temp[i-1, j]) / dx**2
+            d2T_dy2 = (temp[i, j+1] - 2*temp[i, j] + temp[i, j-1]) / dy**2
+            new_temp[i, j] += dt * (thermal_diffusivity * (d2T_dx2 + d2T_dy2) + heat_source[i, j])
+    return new_temp
+
+# Simulation parameters
+total_time = 10  # Total simulation time (seconds)
+time_steps = int(total_time / dt)
+plot_interval = time_steps // 10  # Plot every 10% of simulation
+
+# Simulation loop
+for t in range(time_steps):
+    current_time = t * dt
+    update_heater_logic(current_time)
+    heat_source = apply_heater_effect()
+    temperature = step_heat_equation(temperature, heat_source)
+    
+    # Plot temperature distribution
+    if t % plot_interval == 0:
+        plt.imshow(temperature, cmap='hot', origin='lower', extent=[0, grid_size[0]*dx, 0, grid_size[1]*dy])
+        plt.colorbar(label='Temperature (C)')
+        plt.title(f'Time: {current_time:.2f} s')
+        plt.xlabel('X (m)')
+        plt.ylabel('Y (m)')
+        plt.show()
