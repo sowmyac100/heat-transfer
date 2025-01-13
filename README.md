@@ -14,7 +14,8 @@ Boundary Conditions:
 The edges of the grid are kept at a constant ambient temperature (e.g., 20°C).
 
 
-Simulation Logic
+Simulation Logic:
+
 Heater Control Logic (update_heater_logic):
 
 Turns heaters on or off based on the temperature at their location.
