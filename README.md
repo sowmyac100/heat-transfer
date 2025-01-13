@@ -23,6 +23,7 @@ Example rule: If a node's temperature is below 40°C, turn the heater on.
 Apply Heater Effects (apply_heater_effect):
 
 Creates a heat_source grid, where heat is added only at heater locations when they are active.
+
 Heat Equation Update (step_heat_equation):
 
 Updates the temperature grid for each time step using the heat equation.
